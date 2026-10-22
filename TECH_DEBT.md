@@ -8,7 +8,7 @@ The framing here is different from an application's. TrellisDB is the only publi
 
 ## 1. A published library with no coverage gate
 
-There is no `--cov-fail-under`, no `.coveragerc`, no `[tool.pytest.ini_options]` and no coverage configuration of any kind. `pytest` runs twelve test files against the 1,380 lines of the `trellisdb` package (every line of the 17 files matched by `trellisdb/**/*.py`, blank lines included) and reports nothing about what it did not reach.
+There is no `--cov-fail-under`, no `.coveragerc`, no `[tool.pytest.ini_options]` and no coverage configuration of any kind. `pytest` runs thirteen test files against the 1,385 lines of the `trellisdb` package (every line of the 17 files matched by `trellisdb/**/*.py`, blank lines included) and reports nothing about what it did not reach.
 
 Every application in this portfolio carries a 100% gate, several of them scoped honestly to the surface that matters. The one artefact that other people install has none. That is the wrong way round: a defect in a desktop clock inconveniences its author; a defect in a storage library silently corrupts someone else's data.
 
@@ -55,6 +55,7 @@ One source-scan assertion (`trellisdb/engine` and `trellisdb/api.py` import noth
 
 - The seven `except Exception as exc:  # noqa: BLE001` handlers in `trellisdb/server/app.py`. They are the HTTP boundary of an optional wrapper, turning engine errors into responses. Broad is correct at that seam and each already carries the marker.
 - `trellisdb/engine/storage.py:112`'s broad handler. It is the crash-safe write path, where the whole point is to fail the commit cleanly rather than leave a half-written file. Already marked.
+- The `except BaseException:` in `FileLock.__enter__` (`trellisdb/engine/locking.py`). It closes the lock file handle and re-raises, swallowing nothing; it is broad because a failure before the lock is held never reaches `__exit__`, so any narrower catch leaks the handle and leaves the lock file undeletable on Windows. `tests/test_file_lock.py` fails if it is narrowed.
 - `smoke_db.json`, its two lock files and `venv_smoke/` at repository root. Untracked smoke-test residue. Ignored correctly; only clutter in a working tree.
 - The `[tool.ruff]` configuration selecting `E`, `F`, `W`, `I`, `UP`, `B`, `SIM` while the repository has no CI to run it. Good configuration waiting for item 1's infrastructure; adding a workflow that runs `ruff check` and `pytest` would serve both.
 - `USE_CASES.md` alongside `README.md`. Deliberate: the pattern this library established.

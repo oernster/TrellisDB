@@ -20,7 +20,7 @@ code of each. ruff is configured in `pyproject.toml` with a wider rule set than
 its defaults (pycodestyle, pyflakes, import order, pyupgrade, bugbear and
 simplify).
 
-**A full run takes a few seconds.** Measured on 2026-10-22: 80 tests passed
+**A full run takes a few seconds.** Measured on 2026-10-22: 84 tests passed
 in about 4 seconds on Windows, with no expected failures (xfail) left.
 
 **Read the exit code.** `0` means every test passed. There is no coverage gate
@@ -42,11 +42,12 @@ one file.
 
 ## Where the tests live
 
-All twelve files sit flat in `tests/`:
+All thirteen files sit flat in `tests/`:
 
 | File | What it holds |
 |---|---|
 | `test_storage_recovery.py` | recovery on open: which of the main file and a commit's temporary file is kept when they disagree; a refusal when neither is valid |
+| `test_file_lock.py` | the lock primitive on its own: whatever stops a lock being taken (a timeout, a missing pywin32, an OS error), the file handle is closed before the error leaves, so the lock file can be locked again and deleted |
 | `test_dependencies.py` | the declared dependencies, evaluated as each platform's installer sees them: a Windows install asks for portalocker's `win32` extra, without which a fresh install there cannot take a shared lock |
 | `test_format_name.py` | new files carry the current format name; a file under the earlier format name opens and is rewritten on commit; an unknown name is refused |
 | `test_locking_multiprocess.py` | across real processes, two writers cannot open together while a reader can open beside a writer that is confirmed to hold its session |

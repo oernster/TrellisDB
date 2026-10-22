@@ -12,7 +12,7 @@ import os
 import time
 from contextlib import AbstractContextManager, suppress
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 import portalocker
@@ -20,7 +20,7 @@ import portalocker
 from trellisdb.errors import LockError
 
 
-class LockMode(str, Enum):
+class LockMode(StrEnum):
     SHARED = "shared"
     EXCLUSIVE = "exclusive"
 
@@ -52,18 +52,27 @@ class FileLock(AbstractContextManager["FileLock"]):
         # Open our own handle so we can control retry behavior.
         # Avoid append-mode on Windows because some lock implementations are
         # sensitive to how the handle was opened.
-        if self._spec.path.exists():
-            self._fh = open(self._spec.path, "r+b")
-        else:
-            self._fh = open(self._spec.path, "w+b")
-            # Ensure non-empty content.
-            self._fh.write(b"0")
-            self._fh.flush()
-            with suppress(OSError):
-                os.fsync(self._fh.fileno())
+        is_new = not self._spec.path.exists()
+        self._fh = open(self._spec.path, "w+b" if is_new else "r+b")
 
-        self._fh.seek(0)
+        # A failure before the lock is held never reaches __exit__, so the
+        # handle is closed here whatever the failure was.
+        try:
+            if is_new:
+                # Ensure non-empty content.
+                self._fh.write(b"0")
+                self._fh.flush()
+                with suppress(OSError):
+                    os.fsync(self._fh.fileno())
+            self._fh.seek(0)
+            self._wait_for_lock(flags)
+        except BaseException:
+            self._fh.close()
+            self._fh = None
+            raise
+        return self
 
+    def _wait_for_lock(self, flags: portalocker.LockFlags) -> None:
         deadline = None
         if self._spec.timeout_s is not None:
             deadline = time.monotonic() + float(self._spec.timeout_s)
@@ -71,17 +80,13 @@ class FileLock(AbstractContextManager["FileLock"]):
         while True:
             try:
                 portalocker.lock(self._fh, flags)
-                break
+                return
             except portalocker.exceptions.LockException as exc:
                 if deadline is None or time.monotonic() >= deadline:
-                    self._fh.close()
-                    self._fh = None
                     raise LockError(
                         f"Could not acquire lock: {self._spec.path}"
                     ) from exc
                 time.sleep(0.05)
-
-        return self
 
     def __exit__(
         self,
