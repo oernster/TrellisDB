@@ -1,7 +1,7 @@
 black
 fastapi
 httpx
-portalocker
+portalocker[win32]
 pytest
 ruff
 uvicorn

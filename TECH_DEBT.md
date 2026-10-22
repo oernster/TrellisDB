@@ -8,7 +8,7 @@ The framing here is different from an application's. TrellisDB is the only publi
 
 ## 1. A published library with no coverage gate
 
-There is no `--cov-fail-under`, no `.coveragerc`, no `[tool.pytest.ini_options]` and no coverage configuration of any kind. `pytest` runs eleven test files against the 1,380 lines of the `trellisdb` package (every line of the 17 files matched by `trellisdb/**/*.py`, blank lines included) and reports nothing about what it did not reach.
+There is no `--cov-fail-under`, no `.coveragerc`, no `[tool.pytest.ini_options]` and no coverage configuration of any kind. `pytest` runs twelve test files against the 1,380 lines of the `trellisdb` package (every line of the 17 files matched by `trellisdb/**/*.py`, blank lines included) and reports nothing about what it did not reach.
 
 Every application in this portfolio carries a 100% gate, several of them scoped honestly to the surface that matters. The one artefact that other people install has none. That is the wrong way round: a defect in a desktop clock inconveniences its author; a defect in a storage library silently corrupts someone else's data.
 

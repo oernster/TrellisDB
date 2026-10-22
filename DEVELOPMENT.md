@@ -10,14 +10,15 @@ it is in [README.md](README.md); how it is built is in
 | Tool | What for | Where from |
 |---|---|---|
 | Python 3.11 or newer | everything | [python.org](https://www.python.org/downloads/) |
-| portalocker | the library's one runtime dependency: the file locks | `pyproject.toml`, installed with the package |
+| portalocker | the library's one runtime dependency: the file locks; its `win32` extra adds pywin32 on Windows, which a shared lock there needs from portalocker 4.0.0 | `pyproject.toml`, installed with the package |
 | fastapi, uvicorn | the optional HTTP wrapper | the `server` extra |
 | pytest, black, ruff, httpx | the checks | `requirements.txt` |
 | build, twine (or another uploader) | cutting a release | not in the repository; install them when releasing |
 
 `requirements.txt` is the development environment, not the library's
 requirements: it lists the checks, the server extra and portalocker together.
-The library itself depends on portalocker alone.
+The library itself depends on portalocker alone (with pywin32 beside it on
+Windows, through that extra).
 
 ## Running from source
 

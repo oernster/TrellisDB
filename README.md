@@ -13,6 +13,8 @@ It is library-first, requires no server and stores all data in a single JSON fil
 
 > **MIT licensed.** TrellisDB is free and open source under the MIT licence, so it can be imported into closed-source and commercial code with no further agreement. Releases up to and including 1.0.6 were published under GPL-3.0 and stay under it.
 
+> **Formerly AxisDB.** This project was first published under a name chosen by accident without regard for its historical meaning. [About the name](#about-the-name) records the mistake and why it is kept on the record rather than erased.
+
 ---
 
 ## Key properties
@@ -211,8 +213,18 @@ TrellisDB is free and stays free. There is no paid tier, no licence key and no f
 
 ---
 
+## About the name
+
+TrellisDB was first published as **AxisDB**: every release up to and including 1.1.1, on PyPI as `axisdb`. The name was meant to describe coordinate axes, the N-dimensional keys every document is stored under. It was chosen without any thought for its historical context. "The Axis" was the Second World War alliance of Nazi Germany, Fascist Italy and Imperial Japan; Nazi Germany's regime carried out the Holocaust.
+
+The association was an accident. It was never intended. It was still an error: a name that could turn people away from the library and tie it to a history it has nothing to do with. The project was renamed TrellisDB, after the lattice of a garden trellis, which keeps the idea of a grid without that history.
+
+The old name is recorded here deliberately rather than erased. Much like real history, a mistake that is quietly removed teaches nothing; one that stays on the record can be learned from. The lesson is a simple one: before giving anything a name, check what that name already means to other people.
+
+Database files written under the old name still open; each is rewritten under the new format name on its next commit.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
 
-TrellisDB moved from GPL-3.0 to MIT after 1.0.6, a deliberate choice for adoption. A library is only useful to the teams that are allowed to import it; a GPL library is off limits to most commercial Python codebases. Its dependencies (portalocker, plus fastapi and uvicorn behind the `server` extra) are all under permissive licences, so nothing it pulls in contradicts the change. Releases up to and including 1.0.6 remain under GPL-3.0.
+TrellisDB moved from GPL-3.0 to MIT after 1.0.6, a deliberate choice for adoption. A library is only useful to the teams that are allowed to import it; a GPL library is off limits to most commercial Python codebases. Its dependencies (portalocker with pywin32 on Windows, plus fastapi and uvicorn behind the `server` extra) are all under permissive licences, so nothing it pulls in contradicts the change. Releases up to and including 1.0.6 remain under GPL-3.0.
