@@ -1,6 +1,6 @@
 # Testing
 
-How AxisDB is tested: running the checks, reading what they say, what the suite
+How TrellisDB is tested: running the checks, reading what they say, what the suite
 covers and what it leaves out; how a new test is written. How the library
 is built is in [ARCHITECTURE.md](ARCHITECTURE.md); setting up the environment
 the tests run in is in [DEVELOPMENT.md](DEVELOPMENT.md).
@@ -20,7 +20,7 @@ code of each. ruff is configured in `pyproject.toml` with a wider rule set than
 its defaults (pycodestyle, pyflakes, import order, pyupgrade, bugbear and
 simplify).
 
-**A full run takes a few seconds.** Measured on 2026-10-03: 73 tests passed
+**A full run takes a few seconds.** Measured on 2026-10-22: 77 tests passed
 in about 4 seconds on Windows, with no expected failures (xfail) left.
 
 **Read the exit code.** `0` means every test passed. There is no coverage gate
@@ -42,11 +42,12 @@ one file.
 
 ## Where the tests live
 
-All ten files sit flat in `tests/`:
+All eleven files sit flat in `tests/`:
 
 | File | What it holds |
 |---|---|
 | `test_storage_recovery.py` | recovery on open: which of the main file and a commit's temporary file is kept when they disagree; a refusal when neither is valid |
+| `test_format_name.py` | new files carry the current format name; a file under the earlier format name opens and is rewritten on commit; an unknown name is refused |
 | `test_locking_multiprocess.py` | across real processes, two writers cannot open together while a reader can open beside a writer that is confirmed to hold its session |
 | `test_create_locking.py` | a `create(..., overwrite=True)` refused because another writer holds the file, in the same process and across real processes, leaves the old data intact |
 | `test_failed_open_lock.py` | a writer open that fails on a corrupt or missing file releases the writer lock before it raises, so a second open reports the real cause |

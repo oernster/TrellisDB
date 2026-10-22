@@ -1,12 +1,12 @@
-"""Query evaluation for AxisDB."""
+"""Query evaluation for TrellisDB."""
 
 from __future__ import annotations
 
 from collections.abc import Iterable
 from typing import Any
 
-from axisdb.engine.keycodec import decode_key
-from axisdb.query.ast import And, Expr, Field, KeyDim, Not, Op, Or
+from trellisdb.engine.keycodec import decode_key
+from trellisdb.query.ast import And, Expr, Field, KeyDim, Not, Op, Or
 
 
 def _contains(container: Any, item: Any) -> bool:

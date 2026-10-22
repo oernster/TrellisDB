@@ -1,4 +1,4 @@
-"""`AxisDB.create(..., overwrite=True)` must not touch a database another writer holds.
+"""`TrellisDB.create(..., overwrite=True)` must not touch a database another writer holds.
 
 `create` takes the exclusive writer lock before it writes the new file, so a
 refused overwrite raises `LockError` and leaves the existing data in place.
@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 
-from axisdb import AxisDB
-from axisdb.errors import LockError
+from trellisdb import TrellisDB
+from trellisdb.errors import LockError
 
 DIMENSIONS = 1
 WIDER_DIMENSIONS = 2
@@ -25,13 +25,13 @@ CHILD_JOIN_TIMEOUT_S = 10.0
 
 
 def _seed(db_path: Path) -> None:
-    with AxisDB.create(db_path, dimensions=DIMENSIONS) as db:
+    with TrellisDB.create(db_path, dimensions=DIMENSIONS) as db:
         db.set(KEY, VALUE)
         db.commit()
 
 
 def _assert_untouched(db_path: Path) -> None:
-    reopened = AxisDB.open(db_path, mode="r")
+    reopened = TrellisDB.open(db_path, mode="r")
     assert reopened.dimensions == DIMENSIONS
     assert reopened.get(KEY) == VALUE
 
@@ -40,14 +40,14 @@ def test_refused_overwrite_in_same_process_leaves_data_intact(tmp_path: Path) ->
     db_path = tmp_path / "db.json"
     _seed(db_path)
 
-    with AxisDB.open(db_path, mode="rw"), pytest.raises(LockError):
-        AxisDB.create(db_path, dimensions=WIDER_DIMENSIONS, overwrite=True)
+    with TrellisDB.open(db_path, mode="rw"), pytest.raises(LockError):
+        TrellisDB.create(db_path, dimensions=WIDER_DIMENSIONS, overwrite=True)
 
     _assert_untouched(db_path)
 
 
 def _hold_writer_until_released(db_path: str, ready, release) -> None:  # noqa: ANN001
-    with AxisDB.open(db_path, mode="rw"):
+    with TrellisDB.open(db_path, mode="rw"):
         ready.set()
         release.wait(CHILD_JOIN_TIMEOUT_S)
 
@@ -67,7 +67,7 @@ def test_refused_overwrite_across_processes_leaves_data_intact(
     try:
         assert ready.wait(CHILD_READY_TIMEOUT_S)
         with pytest.raises(LockError):
-            AxisDB.create(db_path, dimensions=WIDER_DIMENSIONS, overwrite=True)
+            TrellisDB.create(db_path, dimensions=WIDER_DIMENSIONS, overwrite=True)
         _assert_untouched(db_path)
     finally:
         release.set()

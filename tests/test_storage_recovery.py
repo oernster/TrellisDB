@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from axisdb.engine.storage import (
+from trellisdb.engine.storage import (
     StoragePaths,
     default_payload,
     read_validated,
     recover_if_needed,
 )
-from axisdb.errors import StorageCorruptionError
+from trellisdb.errors import StorageCorruptionError
 
 
 def test_recovery_promotes_tmp_when_main_missing(tmp_path: Path) -> None:

@@ -1,6 +1,6 @@
 # Development
 
-How to work on AxisDB from source and cut a release. What it is and how to use
+How to work on TrellisDB from source and cut a release. What it is and how to use
 it is in [README.md](README.md); how it is built is in
 [ARCHITECTURE.md](ARCHITECTURE.md); running and writing the tests is in
 [TESTING.md](TESTING.md). Commands run from the repository root.
@@ -28,8 +28,8 @@ python -m pip install -r requirements.txt
 python -m pip install -e .
 ```
 
-The editable install puts `axisdb` on the path exactly as a user's
-`pip install axisdb` would. To run the HTTP wrapper with its interactive API
+The editable install puts `trellisdb` on the path exactly as a user's
+`pip install trellisdb` would. To run the HTTP wrapper with its interactive API
 documentation, see the README's section on the FastAPI wrapper.
 
 A database here is a JSON file plus two lock files beside it
@@ -57,8 +57,8 @@ the on-disk format.
    python -m build
    ```
 
-   which writes `dist/axisdb-<version>.tar.gz` and
-   `dist/axisdb-<version>-py3-none-any.whl`. `dist/` is gitignored.
+   which writes `dist/trellisdb-<version>.tar.gz` and
+   `dist/trellisdb-<version>-py3-none-any.whl`. `dist/` is gitignored.
 4. Upload both files to PyPI, for example with
    `python -m twine upload dist/*` after `python -m pip install twine`.
 5. Tag the release `v` plus the version, as every release so far has been

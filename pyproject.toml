@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "axisdb"
+name = "trellisdb"
 version = "1.1.1"
 description = "Tiny embedded document database for Python with N-dimensional coordinate keys."
 readme = "README.md"
@@ -23,16 +23,16 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/oernster/AxisDB"
-Repository = "https://github.com/oernster/AxisDB"
-Issues = "https://github.com/oernster/AxisDB/issues"
+Homepage = "https://github.com/oernster/TrellisDB"
+Repository = "https://github.com/oernster/TrellisDB"
+Issues = "https://github.com/oernster/TrellisDB/issues"
 
 [project.optional-dependencies]
 server = ["fastapi", "uvicorn"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["axisdb*"]
+include = ["trellisdb*"]
 
 [tool.black]
 line-length = 88

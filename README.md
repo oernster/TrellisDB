@@ -1,17 +1,17 @@
-# AxisDB
+# TrellisDB
 
-**AxisDB** is a tiny embedded document database for Python, designed for simple, reliable storage of JSON documents addressed by **N-dimensional coordinate keys**.
+**TrellisDB** is a tiny embedded document database for Python, designed for simple, reliable storage of JSON documents addressed by **N-dimensional coordinate keys**.
 
 It is library-first, requires no server and stores all data in a single JSON file with atomic, crash-safe commits.
 
-<img width="1764" height="987" alt="AxisDB" src="https://github.com/user-attachments/assets/8c3e56ae-2a0b-4ecc-b0b9-f35780e73bef" />
+<img width="1764" height="987" alt="TrellisDB" src="https://github.com/user-attachments/assets/8c3e56ae-2a0b-4ecc-b0b9-f35780e73bef" />
 
 > **See also:**  
-> [USE_CASES.md](https://github.com/oernster/AxisDB/blob/main/USE_CASES.md): a concise overview of practical applications and patterns enabled by this multidimensional JSON storage model.  
-> [ARCHITECTURE.md](https://github.com/oernster/AxisDB/blob/main/ARCHITECTURE.md): the engine, the storage format and the locking model.  
-> [TECH_DEBT.md](https://github.com/oernster/AxisDB/blob/main/TECH_DEBT.md): what is still open, what is deliberately left and what only looks like debt.
+> [USE_CASES.md](https://github.com/oernster/TrellisDB/blob/main/USE_CASES.md): a concise overview of practical applications and patterns enabled by this multidimensional JSON storage model.  
+> [ARCHITECTURE.md](https://github.com/oernster/TrellisDB/blob/main/ARCHITECTURE.md): the engine, the storage format and the locking model.  
+> [TECH_DEBT.md](https://github.com/oernster/TrellisDB/blob/main/TECH_DEBT.md): what is still open, what is deliberately left and what only looks like debt.
 
-> **MIT licensed.** AxisDB is free and open source under the MIT licence, so it can be imported into closed-source and commercial code with no further agreement. Releases up to and including 1.0.6 were published under GPL-3.0 and stay under it.
+> **MIT licensed.** TrellisDB is free and open source under the MIT licence, so it can be imported into closed-source and commercial code with no further agreement. Releases up to and including 1.0.6 were published under GPL-3.0 and stay under it.
 
 ---
 
@@ -41,13 +41,13 @@ It is library-first, requires no server and stores all data in a single JSON fil
 ### Core library
 
 ```bash
-pip install axisdb
+pip install trellisdb
 ```
 
 ### Optional server components
 
 ```bash
-pip install "axisdb[server]"
+pip install "trellisdb[server]"
 ```
 
 ---
@@ -57,13 +57,13 @@ pip install "axisdb[server]"
 Create a database, write a value and commit:
 
 ```python
-from axisdb import AxisDB
+from trellisdb import TrellisDB
 
-db = AxisDB.create("./mydb.json", dimensions=2)
+db = TrellisDB.create("./mydb.json", dimensions=2)
 db.set(("user1", "orders"), {"count": 3})
 db.commit()
 
-ro = AxisDB.open("./mydb.json", mode="r")
+ro = TrellisDB.open("./mydb.json", mode="r")
 print(ro.get(("user1", "orders")))
 ```
 
@@ -78,7 +78,7 @@ Notes:
 
 ## Query and indexing (MVP)
 
-AxisDB is optimized for correctness and predictable behavior over complex query planning.
+TrellisDB is optimized for correctness and predictable behavior over complex query planning.
 
 - Indexes are **materialized and persisted** in the DB file.
 - Indexes are **rebuilt on each commit** (correctness-first MVP).
@@ -94,19 +94,19 @@ AxisDB is optimized for correctness and predictable behavior over complex query 
 Define a field index:
 
 ```python
-from axisdb import AxisDB
+from trellisdb import TrellisDB
 
-db = AxisDB.create("./mydb.json", dimensions=2)
+db = TrellisDB.create("./mydb.json", dimensions=2)
 db.define_field_index("by_customer_id", ("customer_id",))
 ```
 
 Query with an expression:
 
 ```python
-from axisdb import AxisDB
-from axisdb.query.ast import Field
+from trellisdb import TrellisDB
+from trellisdb.query.ast import Field
 
-db = AxisDB.open("./mydb.json", mode="r")
+db = TrellisDB.open("./mydb.json", mode="r")
 rows = db.find(prefix=("orders",), where=Field(("customer_id",), "==", "c2"))
 ```
 
@@ -117,13 +117,13 @@ rows = db.find(prefix=("orders",), where=Field(("customer_id",), "==", "c2"))
 After installing the server extras:
 
 ```bash
-pip install "axisdb[server]"
+pip install "trellisdb[server]"
 ```
 
 Run the server:
 
 ```bash
-python -m uvicorn axisdb.server.app:app --reload
+python -m uvicorn trellisdb.server.app:app --reload
 ```
 
 The server will start at:
@@ -161,7 +161,7 @@ The wrapper does not bypass durability or locking: it opens the database in `mod
 
 ## Concurrency model (locking)
 
-By default (`lock=True`), AxisDB uses two lock files next to the database file:
+By default (`lock=True`), TrellisDB uses two lock files next to the database file:
 
 - `*.writer.lock`: exclusive lock held for the lifetime of a writer session (`mode="rw"`)
 - `*.rw.lock`: shared during reads; exclusive during `commit()`
@@ -176,9 +176,9 @@ This project follows **semantic versioning**.
 
 Guaranteed stable within a major version:
 
-- Public `AxisDB` API: `open`, `create`, `get`, `set`, `delete`, `exists`, `list`, `slice`, `find`, `commit`, `rollback`
-- Public exception types in `axisdb.errors`
-- On-disk file format (`format=axisdb`, `format_version=2`)
+- Public `TrellisDB` API: `open`, `create`, `get`, `set`, `delete`, `exists`, `list`, `slice`, `find`, `commit`, `rollback`
+- Public exception types in `trellisdb.errors`
+- On-disk file format (`format=trellisdb`, `format_version=2`); files written under the project's earlier name still open and are rewritten in this format on their next commit
 
 May change in minor versions:
 
@@ -205,9 +205,9 @@ python -m pytest -q
 
 ## Supporting the project
 
-AxisDB is free and stays free. There is no paid tier, no licence key and no feature held back behind a donation. If it has saved you time or simply been useful, a donation supports its maintenance and continued development.
+TrellisDB is free and stays free. There is no paid tier, no licence key and no feature held back behind a donation. If it has saved you time or simply been useful, a donation supports its maintenance and continued development.
 
-<a href="https://www.paypal.com/ncp/payment/W6KW78BVJX2AS"><img src="https://ernster.dev/assets/donate.png" alt="Donate to AxisDB" width="120"></a>
+<a href="https://www.paypal.com/ncp/payment/W6KW78BVJX2AS"><img src="https://ernster.dev/assets/donate.png" alt="Donate to TrellisDB" width="120"></a>
 
 ---
 
@@ -215,4 +215,4 @@ AxisDB is free and stays free. There is no paid tier, no licence key and no feat
 
 MIT. See [LICENSE](LICENSE).
 
-AxisDB moved from GPL-3.0 to MIT after 1.0.6, a deliberate choice for adoption. A library is only useful to the teams that are allowed to import it; a GPL library is off limits to most commercial Python codebases. Its dependencies (portalocker, plus fastapi and uvicorn behind the `server` extra) are all under permissive licences, so nothing it pulls in contradicts the change. Releases up to and including 1.0.6 remain under GPL-3.0.
+TrellisDB moved from GPL-3.0 to MIT after 1.0.6, a deliberate choice for adoption. A library is only useful to the teams that are allowed to import it; a GPL library is off limits to most commercial Python codebases. Its dependencies (portalocker, plus fastapi and uvicorn behind the `server` extra) are all under permissive licences, so nothing it pulls in contradicts the change. Releases up to and including 1.0.6 remain under GPL-3.0.

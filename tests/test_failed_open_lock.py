@@ -12,17 +12,17 @@ from pathlib import Path
 
 import pytest
 
-from axisdb import AxisDB
-from axisdb.errors import StorageCorruptionError
+from trellisdb import TrellisDB
+from trellisdb.errors import StorageCorruptionError
 
 CORRUPT_TEXT = "{not json"
 
 
 def _assert_second_writer_sees_the_cause(db_path: Path) -> None:
     with pytest.raises(StorageCorruptionError) as first:
-        AxisDB.open(db_path, mode="rw")
+        TrellisDB.open(db_path, mode="rw")
     with pytest.raises(StorageCorruptionError):
-        AxisDB.open(db_path, mode="rw")
+        TrellisDB.open(db_path, mode="rw")
     assert first.value.__traceback__ is not None
 
 

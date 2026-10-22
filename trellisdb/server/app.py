@@ -1,10 +1,10 @@
-"""FastAPI wrapper over the AxisDB library.
+"""FastAPI wrapper over the TrellisDB library.
 
 This is intentionally a thin layer:
 - It does not implement database logic.
-- It converts HTTP requests into calls to [`AxisDB`](axisdb/api.py:1).
+- It converts HTTP requests into calls to [`TrellisDB`](trellisdb/api.py:1).
 
-Every handle is opened in a `with` block, so `AxisDB.__exit__` releases it
+Every handle is opened in a `with` block, so `TrellisDB.__exit__` releases it
 (and any writer lock) as soon as the request is done.
 """
 
@@ -16,17 +16,17 @@ from typing import Any
 
 from fastapi import Body, FastAPI, HTTPException, Query, status
 
-from axisdb import AxisDB
-from axisdb.errors import (
+from trellisdb import TrellisDB
+from trellisdb.errors import (
     LockError,
     ReadOnlyError,
     StorageCorruptionError,
     ValidationError,
 )
-from axisdb.query.ast import Field
-from axisdb.server.schemas import DeleteBody, InitResponse, ItemBody
+from trellisdb.query.ast import Field
+from trellisdb.server.schemas import DeleteBody, InitResponse, ItemBody
 
-app = FastAPI(title="AxisDB")
+app = FastAPI(title="TrellisDB")
 
 
 def _to_http(exc: Exception) -> HTTPException:
@@ -68,7 +68,7 @@ def _decode_query_value(raw: str | None) -> Any:
 @app.get("/info")
 def info(path: str) -> dict[str, Any]:
     try:
-        with AxisDB.open(path, mode="r") as db:
+        with TrellisDB.open(path, mode="r") as db:
             return {"path": str(Path(path)), "dimensions": db.dimensions, "mode": "r"}
     except Exception as exc:  # noqa: BLE001
         raise _to_http(exc) from exc
@@ -77,7 +77,7 @@ def info(path: str) -> dict[str, Any]:
 @app.post("/init")
 def init_db(path: str, dimensions: int, overwrite: bool = False) -> InitResponse:
     try:
-        with AxisDB.create(path, dimensions=dimensions, overwrite=overwrite) as db:
+        with TrellisDB.create(path, dimensions=dimensions, overwrite=overwrite) as db:
             return InitResponse(
                 path=str(Path(path)),
                 dimensions=db.dimensions,
@@ -90,7 +90,7 @@ def init_db(path: str, dimensions: int, overwrite: bool = False) -> InitResponse
 @app.post("/item")
 def set_item(path: str, body: ItemBody = Body(...)) -> dict[str, Any]:
     try:
-        with AxisDB.open(path, mode="rw") as db:
+        with TrellisDB.open(path, mode="rw") as db:
             db.set(tuple(body.coords), body.value)
             db.commit()
         return {"coords": body.coords, "value": body.value}
@@ -101,7 +101,7 @@ def set_item(path: str, body: ItemBody = Body(...)) -> dict[str, Any]:
 @app.get("/item")
 def get_item(path: str, coords: list[str] = Query(...)) -> dict[str, Any]:
     try:
-        with AxisDB.open(path, mode="r") as db:
+        with TrellisDB.open(path, mode="r") as db:
             value = db.get(tuple(coords))
         return {"coords": coords, "value": value}
     except Exception as exc:  # noqa: BLE001
@@ -111,7 +111,7 @@ def get_item(path: str, coords: list[str] = Query(...)) -> dict[str, Any]:
 @app.delete("/item")
 def delete_item(path: str, body: DeleteBody = Body(...)) -> dict[str, Any]:
     try:
-        with AxisDB.open(path, mode="rw") as db:
+        with TrellisDB.open(path, mode="rw") as db:
             db.delete(tuple(body.coords))
             db.commit()
         return {"coords": body.coords, "deleted": True}
@@ -124,7 +124,7 @@ def list_items(
     path: str, prefix: list[str] | None = Query(None), depth: int | None = None
 ) -> dict[str, Any]:
     try:
-        with AxisDB.open(path, mode="r") as db:
+        with TrellisDB.open(path, mode="r") as db:
             keys = db.list(prefix=tuple(prefix or ()), depth=depth)
         return {"keys": [list(k) for k in keys]}
     except Exception as exc:  # noqa: BLE001
@@ -147,7 +147,7 @@ def find_items(
     """
 
     try:
-        with AxisDB.open(path, mode="r") as db:
+        with TrellisDB.open(path, mode="r") as db:
             expr = None
             if field is not None:
                 literal = _decode_query_value(value)

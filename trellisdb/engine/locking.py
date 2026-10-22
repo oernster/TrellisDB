@@ -17,7 +17,7 @@ from pathlib import Path
 
 import portalocker
 
-from axisdb.errors import LockError
+from trellisdb.errors import LockError
 
 
 class LockMode(str, Enum):

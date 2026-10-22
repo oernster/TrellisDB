@@ -4,7 +4,7 @@ Keys are represented externally as sequences of strings (components).
 On disk we store a single encoded string using '/' separators.
 
 We percent-encode each component with no safe characters to ensure
-reversibility even when components contain '/', '%', or whitespace.
+reversibility even when components contain '/', '%' or whitespace.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from urllib.parse import quote, unquote
 
-from axisdb.errors import ValidationError
+from trellisdb.errors import ValidationError
 
 _SEP = "/"
 

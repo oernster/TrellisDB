@@ -1,21 +1,21 @@
-# AxisDB: Architectural Overview
+# TrellisDB: Architectural Overview
 
-This document describes the architecture of AxisDB as implemented in this repository.
+This document describes the architecture of TrellisDB as implemented in this repository.
 Goals prioritized: correctness, durability and testability over performance.
 
 ## 1. What this project is
 
-AxisDB is a small embedded document database implemented as a Python library with an optional FastAPI wrapper.
+TrellisDB is a small embedded document database implemented as a Python library with an optional FastAPI wrapper.
 
 - Embedded: local file storage; no networking in the core.
 - Document DB: values are JSON-serializable documents (or JSON-compatible primitives).
 - Multi-dimensional keys: keys are N-dimensional coordinate paths (sequence of strings).
 
 Primary entrypoint:
-[AxisDB](./axisdb/api.py#L1)
+[TrellisDB](./trellisdb/api.py#L1)
 
 Optional REST wrapper:
-[axisdb.server.app:app](./axisdb/server/app.py#L1)
+[trellisdb.server.app:app](./trellisdb/server/app.py#L1)
 
 ## 2. High-level architecture
 
@@ -39,7 +39,7 @@ External form: `tuple[str, ...]` with length N where N = dimensions.
 On-disk form: a single encoded string, constructed by percent-encoding each component and joining with `/`.
 
 Key codec:
-[axisdb.engine.keycodec](./axisdb/engine/keycodec.py#L1)
+[trellisdb.engine.keycodec](./trellisdb/engine/keycodec.py#L1)
 
 ### 3.2 Values
 
@@ -53,11 +53,13 @@ The library validates serializability on `set()`.
 The database is stored as a single JSON file with a stable schema (format name and version).
 
 Storage code:
-[axisdb.engine.storage](./axisdb/engine/storage.py#L1)
+[trellisdb.engine.storage](./trellisdb/engine/storage.py#L1)
 
 Key fields:
 
-- `format`, `format_version`
+- `format`, `format_version`: new files are written as `trellisdb`; a file
+  written under the project's earlier format name is still accepted on open
+  (`READABLE_FORMAT_NAMES`) and rewritten as `trellisdb` on its next commit
 - `meta`: includes dimensions, timestamps and index definitions
 - `data`: mapping `encoded_key -> value`
 - `index`: materialized indexes (prefix keys and optional field indexes)
@@ -72,7 +74,7 @@ Commit writes to a temp file and then atomically replaces the main file:
 4. Best-effort directory `fsync`.
 
 Commit code:
-[write_atomic()](./axisdb/engine/storage.py#L1)
+[write_atomic()](./trellisdb/engine/storage.py#L1)
 
 Correctness goal: after a crash, the database is either the old valid file or the new valid file,
 not a torn partial write.
@@ -82,7 +84,7 @@ not a torn partial write.
 On open, recovery checks for an orphaned temp file and promotes it if needed.
 
 Recovery code:
-[recover_if_needed()](./axisdb/engine/storage.py#L1)
+[recover_if_needed()](./trellisdb/engine/storage.py#L1)
 
 Recovery rules:
 
@@ -95,7 +97,7 @@ Recovery rules:
 Design target: single writer, multiple readers, cross-platform.
 
 Locking code:
-[axisdb.engine.locking](./axisdb/engine/locking.py#L1)
+[trellisdb.engine.locking](./trellisdb/engine/locking.py#L1)
 
 Two lock files are used:
 
@@ -105,12 +107,12 @@ Two lock files are used:
 Integration points:
 
 - Writer lock acquired in
-  [AxisDB._initialize()](./axisdb/api.py#L1)
+  [TrellisDB._initialize()](./trellisdb/api.py#L1)
   when opened with `mode="rw"`. If anything after it fails (recovery, a corrupt
   or missing file, the initial write of `create`), the writer lock is released
   before the error is raised.
 - Commit acquires an exclusive rw lock in
-  [AxisDB.commit()](./axisdb/api.py#L1).
+  [TrellisDB.commit()](./trellisdb/api.py#L1).
 - Read-only operations load from disk and use shared rw locking during file read.
 
 ## 6. Transaction semantics
@@ -123,7 +125,7 @@ Integration points:
 - `rollback()` discards overlay and reloads base state from disk.
 
 Implementation:
-[axisdb.api](./axisdb/api.py#L1)
+[trellisdb.api](./trellisdb/api.py#L1)
 
 `mode="r"` is read-only; each read operation reloads from disk to reflect the latest committed state.
 
@@ -138,7 +140,7 @@ Purpose: accelerate prefix key scans.
 Representation: sorted list of all encoded keys.
 
 Implementation:
-[axisdb.index.prefix](./axisdb/index/prefix.py#L1)
+[trellisdb.index.prefix](./trellisdb/index/prefix.py#L1)
 
 ### 7.2 Field indexes
 
@@ -148,7 +150,7 @@ Representation:
 `index_name -> canonical_value -> [encoded_keys...]`
 
 Implementation:
-[axisdb.index.fields](./axisdb/index/fields.py#L1)
+[trellisdb.index.fields](./trellisdb/index/fields.py#L1)
 
 Note: `find()` uses the prefix index as the primary candidate filter and can use field indexes
 for simple equality predicates.
@@ -158,18 +160,18 @@ for simple equality predicates.
 Queries are represented as a small expression tree (AST) and evaluated against candidate documents.
 
 AST:
-[axisdb.query.ast](./axisdb/query/ast.py#L1)
+[trellisdb.query.ast](./trellisdb/query/ast.py#L1)
 
 Evaluator:
-[axisdb.query.eval](./axisdb/query/eval.py#L1)
+[trellisdb.query.eval](./trellisdb/query/eval.py#L1)
 
-`AxisDB.find()` supports:
+`TrellisDB.find()` supports:
 
 - Prefix restriction.
 - `where` as either an AST expression or a Python callable.
 
 See:
-[AxisDB.find()](./axisdb/api.py#L1)
+[TrellisDB.find()](./trellisdb/api.py#L1)
 
 ## 9. Slice API
 
@@ -183,17 +185,17 @@ Selectors per dimension:
 - `callable`: predicate on the component
 
 Implementation:
-[AxisDB.slice()](./axisdb/api.py#L1)
+[TrellisDB.slice()](./trellisdb/api.py#L1)
 
 ## 10. FastAPI wrapper
 
 The FastAPI app is a thin translation layer that maps HTTP requests to library operations.
 
 App module:
-[axisdb.server.app](./axisdb/server/app.py#L1)
+[trellisdb.server.app](./trellisdb/server/app.py#L1)
 
 Request body models:
-[axisdb.server.schemas](./axisdb/server/schemas.py#L1)
+[trellisdb.server.schemas](./trellisdb/server/schemas.py#L1)
 
 The wrapper does not bypass durability or locking; it opens the library with appropriate modes
 for each endpoint.
@@ -205,7 +207,7 @@ file holds, how to run the checks and what the suite leaves out are in
 [TESTING.md](TESTING.md).
 
 Source:
-https://github.com/oernster/AxisDB
+https://github.com/oernster/TrellisDB
 
 ---
 

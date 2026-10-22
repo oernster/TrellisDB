@@ -1,4 +1,4 @@
-"""Tests for the optional FastAPI wrapper in `axisdb/server`.
+"""Tests for the optional FastAPI wrapper in `trellisdb/server`.
 
 `/init`, `/info` and `/item` live here, with the `_to_http` error mapping;
 `/list` and `/find` are in `test_server_query.py`. Every request goes through
@@ -15,14 +15,14 @@ import pytest
 from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
 
-from axisdb import AxisDB
-from axisdb.errors import (
+from trellisdb import TrellisDB
+from trellisdb.errors import (
     LockError,
     ReadOnlyError,
     StorageCorruptionError,
     ValidationError,
 )
-from axisdb.server.app import _to_http, app
+from trellisdb.server.app import _to_http, app
 
 DIMENSIONS = 2
 WIDER_DIMENSIONS = 3
@@ -53,7 +53,7 @@ def db_path(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def seeded(db_path: Path) -> Path:
-    with AxisDB.create(db_path, dimensions=DIMENSIONS) as db:
+    with TrellisDB.create(db_path, dimensions=DIMENSIONS) as db:
         for key, doc in SEED.items():
             db.set(key, doc)
         db.commit()
@@ -68,7 +68,7 @@ def test_init_creates_database(client: TestClient, db_path: Path) -> None:
 
     assert r.status_code == status.HTTP_200_OK
     assert r.json() == {"path": str(db_path), "dimensions": DIMENSIONS, "created": True}
-    assert AxisDB.open(db_path, mode="r").dimensions == DIMENSIONS
+    assert TrellisDB.open(db_path, mode="r").dimensions == DIMENSIONS
 
 
 def test_init_then_write_on_same_path_succeeds(
@@ -90,7 +90,7 @@ def test_init_refuses_existing_path_without_overwrite(
 
     assert r.status_code == status.HTTP_400_BAD_REQUEST
     assert "already exists" in r.json()["detail"]
-    assert AxisDB.open(seeded, mode="r").get(tuple(ALICE_KEY)) == ALICE_DOC
+    assert TrellisDB.open(seeded, mode="r").get(tuple(ALICE_KEY)) == ALICE_DOC
 
 
 def test_init_overwrite_replaces_database(client: TestClient, seeded: Path) -> None:
@@ -101,7 +101,7 @@ def test_init_overwrite_replaces_database(client: TestClient, seeded: Path) -> N
 
     assert r.status_code == status.HTTP_200_OK
     assert r.json()["dimensions"] == WIDER_DIMENSIONS
-    reopened = AxisDB.open(seeded, mode="r")
+    reopened = TrellisDB.open(seeded, mode="r")
     assert reopened.dimensions == WIDER_DIMENSIONS
     assert reopened.list() == []
 
@@ -115,7 +115,7 @@ def test_init_closes_its_writer_handle(client: TestClient, db_path: Path) -> Non
 
 
 def test_refused_overwrite_leaves_data_intact(client: TestClient, seeded: Path) -> None:
-    with AxisDB.open(seeded, mode="rw"):
+    with TrellisDB.open(seeded, mode="rw"):
         r = client.post(
             "/init",
             params={
@@ -126,7 +126,7 @@ def test_refused_overwrite_leaves_data_intact(client: TestClient, seeded: Path) 
         )
     assert r.status_code == status.HTTP_423_LOCKED
 
-    assert AxisDB.open(seeded, mode="r").get(tuple(ALICE_KEY)) == ALICE_DOC
+    assert TrellisDB.open(seeded, mode="r").get(tuple(ALICE_KEY)) == ALICE_DOC
 
 
 # /info
@@ -172,7 +172,7 @@ def test_set_item_commits_value(client: TestClient, seeded: Path) -> None:
 
     assert r.status_code == status.HTTP_200_OK
     assert r.json() == {"coords": new_key, "value": BOB_DOC}
-    assert AxisDB.open(seeded, mode="r").get(tuple(new_key)) == BOB_DOC
+    assert TrellisDB.open(seeded, mode="r").get(tuple(new_key)) == BOB_DOC
 
 
 def test_set_item_with_wrong_dimension_count_is_bad_request(
@@ -218,7 +218,7 @@ def test_delete_item_removes_key(client: TestClient, seeded: Path) -> None:
 
     assert r.status_code == status.HTTP_200_OK
     assert r.json() == {"coords": ALICE_KEY, "deleted": True}
-    assert not AxisDB.open(seeded, mode="r").exists(tuple(ALICE_KEY))
+    assert not TrellisDB.open(seeded, mode="r").exists(tuple(ALICE_KEY))
     gone = client.get("/item", params={"path": str(seeded), "coords": ALICE_KEY})
     assert gone.status_code == status.HTTP_404_NOT_FOUND
 
@@ -232,14 +232,14 @@ def test_delete_of_missing_key_still_succeeds(client: TestClient, seeded: Path) 
 
     assert r.status_code == status.HTTP_200_OK
     assert r.json() == {"coords": missing, "deleted": True}
-    assert len(AxisDB.open(seeded, mode="r").list()) == len(SEED)
+    assert len(TrellisDB.open(seeded, mode="r").list()) == len(SEED)
 
 
 @pytest.mark.parametrize("method", ["POST", "DELETE"])
 def test_write_while_another_writer_holds_the_lock_is_locked(
     client: TestClient, seeded: Path, method: str
 ) -> None:
-    with AxisDB.open(seeded, mode="rw"):
+    with TrellisDB.open(seeded, mode="rw"):
         r = client.request(
             method,
             "/item",
@@ -249,11 +249,11 @@ def test_write_while_another_writer_holds_the_lock_is_locked(
 
     assert r.status_code == status.HTTP_423_LOCKED
     assert "Could not acquire lock" in r.json()["detail"]
-    assert AxisDB.open(seeded, mode="r").get(tuple(ALICE_KEY)) == ALICE_DOC
+    assert TrellisDB.open(seeded, mode="r").get(tuple(ALICE_KEY)) == ALICE_DOC
 
 
 def test_read_beside_a_held_writer_succeeds(client: TestClient, seeded: Path) -> None:
-    with AxisDB.open(seeded, mode="rw"):
+    with TrellisDB.open(seeded, mode="rw"):
         r = client.get("/item", params={"path": str(seeded), "coords": ALICE_KEY})
 
     assert r.status_code == status.HTTP_200_OK

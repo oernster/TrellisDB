@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from axisdb import AxisDB
+from trellisdb import TrellisDB
 
 
 def test_slice_with_exact_match_and_wildcards(tmp_path: Path) -> None:
     db_path = tmp_path / "db.json"
-    db = AxisDB.create(db_path, dimensions=3)
+    db = TrellisDB.create(db_path, dimensions=3)
 
     db.set(("u1", "2025", "01"), {"v": 1})
     db.set(("u1", "2025", "02"), {"v": 2})
@@ -20,7 +20,7 @@ def test_slice_with_exact_match_and_wildcards(tmp_path: Path) -> None:
 
 def test_slice_with_membership_selector(tmp_path: Path) -> None:
     db_path = tmp_path / "db.json"
-    db = AxisDB.create(db_path, dimensions=2)
+    db = TrellisDB.create(db_path, dimensions=2)
 
     db.set(("a", "1"), 1)
     db.set(("a", "2"), 2)

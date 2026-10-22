@@ -12,8 +12,8 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from axisdb import AxisDB
-from axisdb.server.app import app
+from trellisdb import TrellisDB
+from trellisdb.server.app import app
 
 DIMENSIONS = 2
 FIND_LIMIT = 1
@@ -41,7 +41,7 @@ def client() -> TestClient:
 @pytest.fixture
 def seeded(tmp_path: Path) -> Path:
     db_path = tmp_path / "db.json"
-    with AxisDB.create(db_path, dimensions=DIMENSIONS) as db:
+    with TrellisDB.create(db_path, dimensions=DIMENSIONS) as db:
         for key, doc in SEED.items():
             db.set(key, doc)
         db.commit()
@@ -176,7 +176,7 @@ TYPED_SEED = {
 @pytest.fixture
 def typed(tmp_path: Path) -> Path:
     db_path = tmp_path / "typed.json"
-    with AxisDB.create(db_path, dimensions=DIMENSIONS) as db:
+    with TrellisDB.create(db_path, dimensions=DIMENSIONS) as db:
         for name, literal in TYPED_SEED.items():
             db.set(("t", name), {TYPED_FIELD: literal})
         db.commit()

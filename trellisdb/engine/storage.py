@@ -1,4 +1,4 @@
-"""On-disk storage for AxisDB.
+"""On-disk storage for TrellisDB.
 
 Design goals:
 
@@ -17,10 +17,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
-from axisdb.errors import StorageCorruptionError, ValidationError
+from trellisdb.errors import StorageCorruptionError, ValidationError
 
-FORMAT_NAME = "axisdb"
+FORMAT_NAME = "trellisdb"
 FORMAT_VERSION = 2
+# Files written before the rename carry the earlier format name; they still open
+# and are rewritten under FORMAT_NAME on their next commit.
+READABLE_FORMAT_NAMES = (FORMAT_NAME, "axisdb")
 
 
 def _utc_now_iso() -> str:
@@ -97,7 +100,7 @@ def validate_payload(raw: Any) -> DBPayload:
 
     fmt = raw.get("format")
     ver = raw.get("format_version")
-    if fmt != FORMAT_NAME or ver != FORMAT_VERSION:
+    if fmt not in READABLE_FORMAT_NAMES or ver != FORMAT_VERSION:
         raise ValidationError("Unsupported DB format or version")
 
     meta = raw.get("meta")

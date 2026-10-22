@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from axisdb.engine.storage import FieldIndexDef
+from trellisdb.engine.storage import FieldIndexDef
 
 
 def canonical_value_key(value: Any) -> str:

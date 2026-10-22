@@ -1,25 +1,25 @@
-"""Public error types for AxisDB."""
+"""Public error types for TrellisDB."""
 
 from __future__ import annotations
 
 
-class AxisDBError(Exception):
-    """Base class for all AxisDB errors."""
+class TrellisDBError(Exception):
+    """Base class for all TrellisDB errors."""
 
 
-class StorageCorruptionError(AxisDBError):
+class StorageCorruptionError(TrellisDBError):
     """Raised when on-disk data is missing or cannot be validated/recovered."""
 
 
-class LockError(AxisDBError):
+class LockError(TrellisDBError):
     """Raised when the database cannot acquire the required file locks."""
 
 
-class ReadOnlyError(AxisDBError):
+class ReadOnlyError(TrellisDBError):
     """Raised when attempting to mutate state in read-only mode."""
 
 
-class ValidationError(AxisDBError, ValueError):
+class ValidationError(TrellisDBError, ValueError):
     """Raised when inputs fail validation (keys, values, schema)."""
 
 

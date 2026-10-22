@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from axisdb.engine.keycodec import decode_key, encode_key
-from axisdb.errors import ValidationError
+from trellisdb.engine.keycodec import decode_key, encode_key
+from trellisdb.errors import ValidationError
 
 
 @pytest.mark.parametrize(

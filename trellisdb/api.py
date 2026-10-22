@@ -1,8 +1,8 @@
-"""Public API for AxisDB.
+"""Public API for TrellisDB.
 
 This module intentionally keeps the public surface small and typed.
-Engine details live in [`axisdb.engine.storage`](axisdb/engine/storage.py:1),
-[`axisdb.engine.locking`](axisdb/engine/locking.py:1) and other `axisdb.*` modules.
+Engine details live in [`trellisdb.engine.storage`](trellisdb/engine/storage.py:1),
+[`trellisdb.engine.locking`](trellisdb/engine/locking.py:1) and other `trellisdb.*` modules.
 """
 
 from __future__ import annotations
@@ -12,9 +12,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-from axisdb.engine.keycodec import decode_key, encode_key
-from axisdb.engine.locking import FileLock, FileLockSpec, LockMode, LockPaths
-from axisdb.engine.storage import (
+from trellisdb.engine.keycodec import decode_key, encode_key
+from trellisdb.engine.locking import FileLock, FileLockSpec, LockMode, LockPaths
+from trellisdb.engine.storage import (
     DBPayload,
     FieldIndexDef,
     StoragePaths,
@@ -23,7 +23,7 @@ from axisdb.engine.storage import (
     recover_if_needed,
     write_atomic,
 )
-from axisdb.errors import (
+from trellisdb.errors import (
     InvalidCoordsError,
     NonJsonSerializableValueError,
     ReadOnlyError,
@@ -31,16 +31,16 @@ from axisdb.errors import (
     ValidationError,
     WrongDimensionLengthError,
 )
-from axisdb.index.fields import canonical_value_key, rebuild_field_indexes
-from axisdb.index.prefix import rebuild_prefix_keys, select_prefix_range
-from axisdb.query.ast import Expr, Field, is_simple_field_equality
-from axisdb.query.eval import evaluate
+from trellisdb.index.fields import canonical_value_key, rebuild_field_indexes
+from trellisdb.index.prefix import rebuild_prefix_keys, select_prefix_range
+from trellisdb.query.ast import Expr, Field, is_simple_field_equality
+from trellisdb.query.eval import evaluate
 
 OpenMode = Literal["r", "rw"]
 
 
 @dataclass
-class AxisDB:
+class TrellisDB:
     """Main database handle.
 
     Implementation is added incrementally; this file is the stable public
@@ -67,7 +67,9 @@ class AxisDB:
     _storage_paths: StoragePaths = field(init=False)
 
     @classmethod
-    def open(cls, path: str | Path, mode: OpenMode = "rw", lock: bool = True) -> AxisDB:
+    def open(
+        cls, path: str | Path, mode: OpenMode = "rw", lock: bool = True
+    ) -> TrellisDB:
         db = cls(path=Path(path), mode=mode, lock=lock)
         db._initialize()
         return db
@@ -80,7 +82,7 @@ class AxisDB:
         dimensions: int,
         overwrite: bool = False,
         lock: bool = True,
-    ) -> AxisDB:
+    ) -> TrellisDB:
         """Create a new database file.
 
         This is a convenience helper (not part of the minimal API shape in the spec),
@@ -124,7 +126,7 @@ class AxisDB:
         ]
         self._field_index_defs.append(idx)
 
-    def __enter__(self) -> AxisDB:
+    def __enter__(self) -> TrellisDB:
         return self
 
     def __exit__(
